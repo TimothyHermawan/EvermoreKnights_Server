@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="D:/_Project/EvermoreKnights/Misc/Smartfox Things/Libraries/sfs2x.jar"/>
+	<classpathentry kind="lib" path="D:/_Project/EvermoreKnights/Misc/Smartfox Things/Libraries/sfs2x-core.jar"/>
+	<classpathentry kind="lib" path="D:/_Project/EvermoreKnights/Misc/Smartfox Things/Libraries/mongo-java-driver-3.12.2.jar"/>
+	<classpathentry kind="lib" path="D:/_Project/EvermoreKnights/Misc/Smartfox Things/Libraries/gson-2.8.6.jar"/>
+	<classpathentry kind="lib" path="D:/_Project/EvermoreKnights/Misc/Smartfox Things/Libraries/commons-io-1.4.jar"/>
+	<classpathentry kind="lib" path="D:/_Project/EvermoreKnights/Misc/Smartfox Things/Libraries/evo-inflector-1.2.2.jar"/>
+	<classpathentry kind="lib" path="D:/_Project/EvermoreKnights/Misc/Smartfox Things/Libraries/joda-time-2.10.5.jar"/>
+	<classpathentry kind="lib" path="D:/_Project/EvermoreKnights/Misc/Smartfox Things/Libraries/slf4j-api-1.7.5.jar"/>
+	<classpathentry kind="lib" path="D:/_Project/EvermoreKnights/Misc/Smartfox Things/Libraries/slf4j-log4j12-1.7.5.jar"/>
+	<classpathentry kind="lib" path="D:/_Project/EvermoreKnights/Misc/Smartfox Things/Libraries/httpclient-4.5.2.jar"/>
+	<classpathentry kind="lib" path="D:/_Project/EvermoreKnights/Misc/Smartfox Things/Libraries/httpcore-4.4.4.jar"/>
+	<classpathentry kind="lib" path="D:/_Project/EvermoreKnights/Misc/Smartfox Things/Libraries/servlet-api-2.5-20081211.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
