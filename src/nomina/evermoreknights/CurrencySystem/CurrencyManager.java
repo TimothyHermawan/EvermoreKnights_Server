@@ -113,7 +113,7 @@ public class CurrencyManager {
 				if(result.getModifiedCount() >= 1) {					
 					response.status = 1;
 					response.message = transactionMessage;
-					response.data = GeneralUtility.ConvertToSFSObject(receipt);
+					response.data = receipt;
 					
 					session.commitTransaction();
 				}else {
@@ -157,7 +157,7 @@ public class CurrencyManager {
 				if(result != null) {					
 					response.status = 1;
 					response.message = "Success.";
-					response.data = GeneralUtility.ConvertToSFSObject(result);
+					response.data = result;
 				}else {
 					response.status = 0;
 					response.message = "Player receipts could not be found. The player may not have any transaction yet.";
@@ -198,7 +198,7 @@ public class CurrencyManager {
 				if(result != null) {					
 					response.status = 1;
 					response.message = "Success.";
-					response.data = GeneralUtility.ConvertToSFSObject(result);
+					response.data = result;
 				}else {
 					response.status = 0;
 					response.message = "Player resources could not be found. The player may not be registered properly.";

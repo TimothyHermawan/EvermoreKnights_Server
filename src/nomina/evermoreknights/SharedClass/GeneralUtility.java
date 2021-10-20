@@ -90,7 +90,7 @@ public class GeneralUtility {
 					// USERNAME AND PASSWORD MATCHED, TOKEN IS UPDATED.
 					response.status = 1;
 					response.message = "Login success and token is updated.";
-					response.data = GeneralUtility.ConvertToSFSObject(player);
+					response.data = player;
 				}else {
 					// FAILED UPDATING TOKEN
 					response.status = 0;

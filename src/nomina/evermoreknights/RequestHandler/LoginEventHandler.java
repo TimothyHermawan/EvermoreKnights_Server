@@ -62,14 +62,14 @@ public class LoginEventHandler extends BaseServerEventHandler {
 
 		if(response.status != 1) {		
 			
-			short errorCode = response.data.getShort("errorCode");
+			short errorCode = ((SFSObject)response.data).getShort("errorCode");
 			
 			SFSErrorData errData = new SFSErrorData(CustomErrors.getEnum(errorCode));
 			 
 			throw new SFSLoginException(response.message, errData);		
 		}
 		
-		PlayerData player = GeneralUtility.ConvertFromSFSObject(response.data, PlayerData.class);
+		PlayerData player = (PlayerData)response.data;
 		
 		loginResponseOut.putSFSObject("OutData", response.ToSFSObject());
 		
@@ -86,6 +86,8 @@ public class LoginEventHandler extends BaseServerEventHandler {
 		BasicSmartFoxResponse response = new BasicSmartFoxResponse();
 		
 		PlayerData player = MongoDBManager.getInstance().GetPlayerDataByUsername(username);		
+		
+		SFSObject errorData = new SFSObject();
 		
 		if(player!=null) {
 			
@@ -110,13 +112,15 @@ public class LoginEventHandler extends BaseServerEventHandler {
 					// USERNAME AND PASSWORD MATCHED, TOKEN IS UPDATED.
 					response.status = 1;
 					response.message = "Login success.";
-					response.data = GeneralUtility.ConvertToSFSObject(player);
+					response.data = player;
 					
 				}else {
 					// FAILED UPDATING TOKEN
+					errorData.putShort("errorCode", CustomErrors.FAIL_UPDATE_TOKEN.getId());
+					
 					response.status = 0;
 					response.message = "Failed updating data.";
-					response.data.putShort("errorCode", CustomErrors.FAIL_UPDATE_TOKEN.getId());
+					response.data = errorData;
 				}				
 				
 				return response;
@@ -129,9 +133,11 @@ public class LoginEventHandler extends BaseServerEventHandler {
 			// PLAYER NOT FOUND
 		}
 		
+		errorData.putShort("errorCode", CustomErrors.INVALID_CREDENTIAL.getId());
+		
 		response.status = 0;
 		response.message = "Invalid username or password.";
-		response.data.putShort("errorCode", CustomErrors.INVALID_CREDENTIAL.getId());
+		response.data = errorData;
 				
 		return response;
 	}
@@ -141,12 +147,18 @@ public class LoginEventHandler extends BaseServerEventHandler {
 		
 		PlayerData player = null;
 		
+		SFSObject errorData = new SFSObject();
+		
 		// CHECK FOR USERNAME AVAILABILITY
 		player = MongoDBManager.getInstance().GetPlayerDataByUsername(username);		
 		if(player != null) {
+			
+			errorData.putShort("errorCode", CustomErrors.USERNAME_TAKEN.getId());
+			
 			response.status = 0;
 			response.message = "Username is already taken. Try another.";
-			response.data.putShort("errorCode", CustomErrors.USERNAME_TAKEN.getId());
+			response.data = errorData;
+			
 			return response;
 		}
 		
@@ -155,9 +167,12 @@ public class LoginEventHandler extends BaseServerEventHandler {
 		String custom_password = parameters.getUtfString(References.CustomLoginData.Register_Password);
 		player = MongoDBManager.getInstance().GetPlayerDataByEmail(email);
 		if(player != null) {
+			
+			errorData.putShort("errorCode", CustomErrors.EMAIL_TAKEN.getId());
+			
 			response.status = 0;
 			response.message = "Email is already taken. Try another.";
-			response.data.putShort("errorCode", CustomErrors.EMAIL_TAKEN.getId());
+			response.data = errorData;
 			return response;
 		}
 		
@@ -207,11 +222,11 @@ public class LoginEventHandler extends BaseServerEventHandler {
 			
 			session.abortTransaction();
 
+			errorData.putShort("errorCode", CustomErrors.TRANSACTION_FAILED.getId());
+			
 			response.status = 0;
 			response.message = "Transaction Failed";
-			response.data = new SFSObject(); // NEED TO RESET, SINCE IT HAS BEEN FILLED BEFORE
-			response.data.putShort("errorCode", CustomErrors.TRANSACTION_FAILED.getId());
-			
+			response.data = errorData;
 			
 		}finally {
 			session.close();

@@ -1,8 +1,10 @@
 package nomina.evermoreknights.servlet.RequestFile;
 
 import java.io.BufferedReader;
+import java.io.Console;
 import java.io.IOException;
- 
+
+import javax.print.attribute.standard.PrinterLocation;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -64,7 +66,7 @@ public class API_Login extends HttpServlet
     		result.status = 0;
     		result.message = e.getMessage();
 	
-    	}finally {
+    	}finally {    		
     		resp.getWriter().write(GeneralUtility.getGson().toJson(result));    		  
     	}
     	  
