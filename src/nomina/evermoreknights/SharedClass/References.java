@@ -21,5 +21,11 @@ public class References {
 		public static String Currency = "currency";  
 		public static String Currency_Receipt = "currency_receipt";  
 	}
+	
+	public static class SmartfoxCMD{
+		public static String Prefix_Transaction = "transaction";
+		public static String Transaction_DoTransaction = "doTransaction";
+		public static String Transaction_Get_Invoice = "getInvoice";
+	}
 
 }

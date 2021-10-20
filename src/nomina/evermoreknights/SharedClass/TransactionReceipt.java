@@ -1,4 +1,4 @@
-package nomina.evermoreknights.servlet.sharedclass;
+package nomina.evermoreknights.SharedClass;
 
 public class TransactionReceipt {
 	public String id;

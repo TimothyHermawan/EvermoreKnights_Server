@@ -8,11 +8,17 @@ import java.util.logging.Logger;
 
 
 import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.bson.types.ObjectId;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Duration;
 
 import com.google.gson.Gson;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Updates;
+import com.mongodb.client.result.UpdateResult;
 import com.smartfoxserver.v2.entities.data.SFSArray;
 import com.smartfoxserver.v2.entities.data.SFSObject;
 
@@ -55,7 +61,58 @@ public class GeneralUtility {
 		return DateTime.now(DateTimeZone.UTC).plusHours(7);
 	}	
 	
-
+	public static BasicSmartFoxResponse APILogin(String username, String password) {
+		
+		BasicSmartFoxResponse response = new BasicSmartFoxResponse();
+		
+		PlayerData player = MongoDBManager.getInstance().GetPlayerDataByUsername(username);		
+		
+		if(player!=null) {
+			
+			if(player.password.equals(password)) {
+				
+				// GENERATE NEW TOKEN, MOSTLY FOR WEB API, AND APLLY IT TO PLAYER IN RESPONSE
+				String newToken = new ObjectId().toHexString();
+				player.token = newToken;	
+				player.lastLogin = GeneralUtility.GetCurrentTime().toString();
+				
+				// UPDATE TOKEN IN THE DB
+				MongoCollection<Document> playerCollection =  MongoDBManager.getInstance().getDBManager().getCollection(References.DatabaseCollection.Players);
+				Bson filter_pid = Filters.eq("pid", player.pid);
+				Bson update_token = Updates.set("token", newToken);
+				Bson update_lastLogin = Updates.set("lastLogin", player.lastLogin);
+				UpdateResult result = playerCollection.updateOne(filter_pid, Updates.combine(update_token, update_lastLogin));		
+				
+				if(result.getModifiedCount() >= 1) {	
+					// MAKE SURE WE DON'T SEND PASSWORD TO CLIENT
+					player.password = "";
+					
+					// USERNAME AND PASSWORD MATCHED, TOKEN IS UPDATED.
+					response.status = 1;
+					response.message = "Login success and token is updated.";
+					response.data = GeneralUtility.ConvertToSFSObject(player);
+				}else {
+					// FAILED UPDATING TOKEN
+					response.status = 0;
+					response.message = "Failed updating token.";
+				}				
+				
+				return response;
+				
+			}else {				
+				// WRONG PASSWORD				
+			}
+			
+		}else {			
+			// PLAYER NOT FOUND
+		}
+		
+		response.status = 0;
+		response.message = "Invalid username or password.";
+				
+		return response;
+	}
+	
 	
 //	public static Object DeepCopy(Object object) {
 //	   try {

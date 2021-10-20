@@ -1,4 +1,4 @@
-package nomina.evermoreknights.ZoneExtension;
+package nomina.evermoreknights.SharedClass;
 
 public enum AuthenticationType {
 	Login(0),

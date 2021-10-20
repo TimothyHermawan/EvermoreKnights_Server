@@ -1,6 +1,6 @@
-package nomina.evermoreknights.servlet.sharedclass;
+package nomina.evermoreknights.servlet.RequestData;
 
-public class ServletRequestDataTransaction {
+public class SRD_Transaction {
 	public String secret;
 	public String pid;  // receiver
 	public int type;

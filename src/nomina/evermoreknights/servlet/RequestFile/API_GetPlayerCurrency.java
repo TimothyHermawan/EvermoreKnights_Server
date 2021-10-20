@@ -1,4 +1,4 @@
-package nomina.evermoreknights.servlet.authentication;
+package nomina.evermoreknights.servlet.RequestFile;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,15 +11,14 @@ import javax.servlet.http.HttpServletResponse;
 import com.smartfoxserver.v2.SmartFoxServer;
 import com.smartfoxserver.v2.extensions.ISFSExtension;
 
+import nomina.evermoreknights.CurrencySystem.CurrencyManager;
+import nomina.evermoreknights.SharedClass.BasicSmartFoxResponse;
 import nomina.evermoreknights.SharedClass.GeneralUtility;
 import nomina.evermoreknights.SharedClass.MongoDBManager;
-import nomina.evermoreknights.servlet.sharedclass.BasicServletResponse;
-import nomina.evermoreknights.servlet.sharedclass.SRD_GetPlayerCurrency;
-import nomina.evermoreknights.servlet.sharedclass.ServletCommand;
-import nomina.evermoreknights.servlet.sharedclass.ServletRequestDataTransaction;
+import nomina.evermoreknights.servlet.RequestData.SRD_GetPlayerCurrency;
  
 @SuppressWarnings("serial")
-public class GetPlayerCurrency extends HttpServlet
+public class API_GetPlayerCurrency extends HttpServlet
 {
  
     private SmartFoxServer sfs;
@@ -35,7 +34,7 @@ public class GetPlayerCurrency extends HttpServlet
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse resp) throws ServletException, IOException
     {
-    	BasicServletResponse result = new BasicServletResponse();
+    	BasicSmartFoxResponse result = new BasicSmartFoxResponse();
     	
     	// GET THE REQUEST DATA
     	  StringBuffer jb = new StringBuffer();
@@ -44,9 +43,7 @@ public class GetPlayerCurrency extends HttpServlet
     	    BufferedReader reader = request.getReader();
     	    while ((line = reader.readLine()) != null)
     	      jb.append(line);
-    	  } catch (Exception e) { /*report an error*/ }
-    	  
-    	  
+    	  } catch (Exception e) { /*report an error*/ }    	  
     	  
 
     	  try {
@@ -58,18 +55,16 @@ public class GetPlayerCurrency extends HttpServlet
         		  MongoDBManager.getInstance().VerifySecret(dataRequest.secret);
     			  
         		  // EXECUTE ACTION
-    			  result = (BasicServletResponse) myExtension.handleInternalMessage(ServletCommand.GET_PLAYER_CURRENCY, dataRequest);
+    			  result = CurrencyManager.Instance().GetPlayerCurrency(dataRequest.pid);
     		  }else {
     			  result.status = 0;
     			  result.message = "Data Request Error.";
-    			  result.data = "";
     		  }    		  
     		  
     	  } catch (Exception e) {
 
     		  result.status = 0;
 			  result.message = e.getMessage();
-			  result.data = "";
     		  
     	  }finally {
     		  resp.getWriter().write(GeneralUtility.getGson().toJson(result));    		  

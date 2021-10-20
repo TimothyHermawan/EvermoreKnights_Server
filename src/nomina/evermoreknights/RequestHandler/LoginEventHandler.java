@@ -1,4 +1,4 @@
-package nomina.evermoreknights.ZoneExtension;
+package nomina.evermoreknights.RequestHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +29,7 @@ import com.smartfoxserver.v2.extensions.BaseServerEventHandler;
 import nomina.evermoreknights.CurrencySystem.CurrencyManager;
 import nomina.evermoreknights.CurrencySystem.CurrencyType;
 import nomina.evermoreknights.CurrencySystem.CurrencyValue;
+import nomina.evermoreknights.SharedClass.AuthenticationType;
 import nomina.evermoreknights.SharedClass.BasicSmartFoxResponse;
 import nomina.evermoreknights.SharedClass.CustomErrors;
 import nomina.evermoreknights.SharedClass.GeneralUtility;
@@ -110,6 +111,7 @@ public class LoginEventHandler extends BaseServerEventHandler {
 					response.status = 1;
 					response.message = "Login success.";
 					response.data = GeneralUtility.ConvertToSFSObject(player);
+					
 				}else {
 					// FAILED UPDATING TOKEN
 					response.status = 0;
