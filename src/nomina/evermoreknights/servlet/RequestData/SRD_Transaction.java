@@ -6,4 +6,5 @@ public class SRD_Transaction {
 	public int type;
 	public double amount;
 	public String message;
+	public boolean updateClient = true;
 }

@@ -15,6 +15,8 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
+import com.smartfoxserver.v2.SmartFoxServer;
+import com.smartfoxserver.v2.entities.User;
 
 import nomina.evermoreknights.SharedClass.BasicSmartFoxResponse;
 import nomina.evermoreknights.SharedClass.GeneralUtility;
@@ -69,7 +71,20 @@ public class CurrencyManager {
     	return docList;
     }
 	
-	public BasicSmartFoxResponse DoTransaction(String pid, CurrencyValue value, String message) {
+	public void SendCurrencyUpdateToUserByPID(String pid) {		
+		
+		SmartFoxServer sfs = SmartFoxServer.getInstance();
+		
+		User user = GeneralUtility.GetUserByPID(pid);
+		
+		if(user != null && sfs.getUserManager().containsUser(user)) {						
+			BasicSmartFoxResponse response = GetPlayerCurrency(pid);		
+			
+			sfs.getExtensionManager().getZoneExtension(user.getZone()).send(References.SmartfoxCMD.Update_Currency, response.ToSFSObject(), user);
+		}		
+	}
+	
+	public BasicSmartFoxResponse DoTransaction(String pid, CurrencyValue value, String message, boolean updateClient) {
 		BasicSmartFoxResponse response = new BasicSmartFoxResponse();
 		
 		PlayerData player = MongoDBManager.getInstance().GetPlayerDataByPID(pid);		
@@ -116,6 +131,10 @@ public class CurrencyManager {
 					response.data = receipt;
 					
 					session.commitTransaction();
+					
+					// If updateClient is true (means the user in the game will receive a command to update their currency information
+					if(updateClient) CurrencyManager.instance.SendCurrencyUpdateToUserByPID(player.pid);					
+					
 				}else {
 					session.abortTransaction();
 					

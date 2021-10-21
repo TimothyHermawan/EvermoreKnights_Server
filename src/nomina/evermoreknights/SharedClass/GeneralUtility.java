@@ -19,8 +19,11 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
+import com.smartfoxserver.v2.SmartFoxServer;
+import com.smartfoxserver.v2.entities.User;
 import com.smartfoxserver.v2.entities.data.SFSArray;
 import com.smartfoxserver.v2.entities.data.SFSObject;
+import com.smartfoxserver.v2.entities.managers.IUserManager;
 
 public class GeneralUtility {
 
@@ -111,6 +114,18 @@ public class GeneralUtility {
 		response.message = "Invalid username or password.";
 				
 		return response;
+	}
+	
+	public static User GetUserByName(String name) {		
+		User sfsUser = SmartFoxServer.getInstance().getUserManager().getUserByName(name);
+		return sfsUser;
+	}
+	
+	public static User GetUserByPID(String pid) {		
+		PlayerData player = MongoDBManager.getInstance().GetPlayerDataByPID(pid);
+		
+		if(player !=null) return GetUserByName(player.username);
+		else return null;
 	}
 	
 	

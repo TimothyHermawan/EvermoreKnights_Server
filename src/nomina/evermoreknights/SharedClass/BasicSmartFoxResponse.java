@@ -16,16 +16,18 @@ public class BasicSmartFoxResponse {
 	
 	public SFSObject ToSFSObject() {
 		
-		SFSObject response = new SFSObject();
+		SFSObject response = (SFSObject) SFSObject.newFromJsonData(GeneralUtility.getGson().toJson(this));
 		
-		response.putInt("status", status);
+//		SFSObject response = new SFSObject();
 		
-		if(message == null || message.isEmpty() || message == "")
-			response.putNull("message");
-		else		
-		response.putUtfString("message", message);
-		
-		response.putSFSObject("data", SFSObject.newFromJsonData(GeneralUtility.getGson().toJson(data)));		
+//		response.putInt("status", status);
+//		
+//		if(message == null || message.isEmpty() || message == "")
+//			response.putNull("message");
+//		else		
+//		response.putUtfString("message", message);
+//		
+//		response.putSFSObject("data", SFSObject.newFromJsonData(GeneralUtility.getGson().toJson(data)));		
 		
 		return response;		
 	}

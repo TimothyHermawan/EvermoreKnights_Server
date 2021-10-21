@@ -30,12 +30,15 @@ public class TransactionAndInvoiceHandler extends BaseClientRequestHandler {
 				int type = params.getInt("type");
 				double amount = params.getDouble("amount");
 				String message = params.getUtfString("message");
+				boolean updateClient = params.getBool("updateClient");
 				
-				response = CurrencyManager.Instance().DoTransaction(pid, new CurrencyValue(type, amount), message);
+				response = CurrencyManager.Instance().DoTransaction(pid, new CurrencyValue(type, amount), message, updateClient);
 	        }
 	        
 	        else if (command.equals(References.SmartfoxCMD.Transaction_Get_Invoice)) {
 	        	
+	        	
+	        	response = CurrencyManager.Instance().GetPlayerCurrencyReceipts(pid);
 	        }
 			
 			// COMMAND NOT FOUND

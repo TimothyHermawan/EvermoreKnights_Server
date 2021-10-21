@@ -57,7 +57,7 @@ public class API_Transaction extends HttpServlet
 				  MongoDBManager.getInstance().VerifySecret(dataRequest.secret);
 				  
 				  // EXECUTE ACTION    			      	        	     	
-				  result = CurrencyManager.Instance().DoTransaction(dataRequest.pid, new CurrencyValue(dataRequest.type,  dataRequest.amount), dataRequest.message);
+				  result = CurrencyManager.Instance().DoTransaction(dataRequest.pid, new CurrencyValue(dataRequest.type,  dataRequest.amount), dataRequest.message, dataRequest.updateClient);
 			  
 			  }else {
 				  

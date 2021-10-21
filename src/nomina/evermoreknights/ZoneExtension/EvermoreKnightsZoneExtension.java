@@ -4,6 +4,7 @@ import com.smartfoxserver.v2.core.SFSEventType;
 import com.smartfoxserver.v2.extensions.SFSExtension;
 
 import nomina.evermoreknights.RequestHandler.LoginEventHandler;
+import nomina.evermoreknights.RequestHandler.PingHandler;
 import nomina.evermoreknights.RequestHandler.TransactionAndInvoiceHandler;
 import nomina.evermoreknights.SharedClass.MongoDBManager;
 import nomina.evermoreknights.SharedClass.References;
@@ -21,8 +22,11 @@ public class EvermoreKnightsZoneExtension extends SFSExtension {
 		// SFSEvents
 		addEventHandler(SFSEventType.USER_LOGIN, LoginEventHandler.class);		
 		
-		// MultiHandlers
+		// Multi Handler(s)
 		addRequestHandler(References.SmartfoxCMD.Prefix_Transaction, TransactionAndInvoiceHandler.class);
+		
+		// Single Handler(s)
+		addRequestHandler(References.SmartfoxCMD.Ping, PingHandler.class);
 		
 		trace("===== EvermoreKnights ZoneExtension is Initialized =====");
 	}

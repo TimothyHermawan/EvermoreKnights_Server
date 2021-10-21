@@ -26,6 +26,8 @@ public class References {
 		public static String Prefix_Transaction = "transaction";
 		public static String Transaction_DoTransaction = "doTransaction";
 		public static String Transaction_Get_Invoice = "getInvoice";
+		public static String Ping = "ping";
+		public static String Update_Currency = "updateCurrency";
 	}
 
 }
