@@ -24,8 +24,13 @@ public class References {
 	
 	public static class SmartfoxCMD{
 		public static String Prefix_Transaction = "transaction";
+		public static String Prefix_PlayerData= "player";
+		
 		public static String Transaction_DoTransaction = "doTransaction";
 		public static String Transaction_Get_Invoice = "getInvoice";
+		
+		public static String Player_GetPlayerData= "getPlayerData";
+		
 		public static String Ping = "ping";
 		public static String Update_Currency = "updateCurrency";
 	}

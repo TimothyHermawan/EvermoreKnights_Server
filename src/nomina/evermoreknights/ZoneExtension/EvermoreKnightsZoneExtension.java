@@ -5,6 +5,7 @@ import com.smartfoxserver.v2.extensions.SFSExtension;
 
 import nomina.evermoreknights.RequestHandler.LoginEventHandler;
 import nomina.evermoreknights.RequestHandler.PingHandler;
+import nomina.evermoreknights.RequestHandler.PlayerDataHandler;
 import nomina.evermoreknights.RequestHandler.TransactionAndInvoiceHandler;
 import nomina.evermoreknights.SharedClass.MongoDBManager;
 import nomina.evermoreknights.SharedClass.References;
@@ -24,6 +25,7 @@ public class EvermoreKnightsZoneExtension extends SFSExtension {
 		
 		// Multi Handler(s)
 		addRequestHandler(References.SmartfoxCMD.Prefix_Transaction, TransactionAndInvoiceHandler.class);
+		addRequestHandler(References.SmartfoxCMD.Prefix_PlayerData, PlayerDataHandler.class);
 		
 		// Single Handler(s)
 		addRequestHandler(References.SmartfoxCMD.Ping, PingHandler.class);
