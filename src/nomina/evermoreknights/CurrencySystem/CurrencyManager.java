@@ -1,5 +1,6 @@
 package nomina.evermoreknights.CurrencySystem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bson.Document;
@@ -71,6 +72,34 @@ public class CurrencyManager {
     	return docList;
     }
 	
+	public void InsertInitialCurrency(String pid) {	
+		// Check if the player has the currency initialized
+    	if(IsInitializedForPlayer(pid)) return;
+		
+		// PREPARE AND INSERT TO CURRENCY COLLECTION
+		List<CurrencyValue> currValues = new ArrayList<CurrencyValue>();
+		currValues.add(new CurrencyValue(CurrencyType.Evergem.getValue(), 654321));
+		currValues.add(new CurrencyValue(CurrencyType.Zenny.getValue(), 123456));
+		
+		Document currencyDocument = new Document();
+		currencyDocument.put("pid", pid);
+		currencyDocument.put("currencies", GeneralUtility.ConvertToListDocument(currValues));
+					
+		MongoCollection<Document> currencyCollection =  MongoDBManager.getInstance().getDBManager().getCollection(References.DatabaseCollection.Currency);
+		currencyCollection.insertOne(currencyDocument);
+	}
+	
+	private boolean IsInitializedForPlayer(String pid) {
+    	MongoCollection<Document> resources = MongoDBManager.getInstance().getDBManager().getCollection(References.DatabaseCollection.Currency);    
+    	Bson filter = new Document("pid", pid);    	
+    	long result = resources.countDocuments(filter);
+    	
+    	if(result >= 1) return true;
+    	else return false;
+	}
+	
+
+	
 	public void SendCurrencyUpdateToUserByPID(String pid) {		
 		
 		SmartFoxServer sfs = SmartFoxServer.getInstance();
@@ -84,7 +113,8 @@ public class CurrencyManager {
 		}		
 	}
 	
-	public BasicSmartFoxResponse DoTransaction(String pid, CurrencyValue value, String message, boolean updateClient) {
+	
+public BasicSmartFoxResponse DoTransaction(String pid, CurrencyValue value, String message, boolean updateClient) {
 		BasicSmartFoxResponse response = new BasicSmartFoxResponse();
 		
 		PlayerData player = MongoDBManager.getInstance().GetPlayerDataByPID(pid);		
@@ -156,6 +186,7 @@ public class CurrencyManager {
 		return response;		
 	}
 
+
 	public BasicSmartFoxResponse GetPlayerCurrencyReceipts(String pid) {
 		
 	BasicSmartFoxResponse response = new BasicSmartFoxResponse();
@@ -212,7 +243,7 @@ public class CurrencyManager {
 			
 			try {
 
-				List<CurrencyValue> result = CurrencyManager.Instance().GetUserCurrenciesFromDatabase(pid);
+				List<CurrencyValue> result = GetUserCurrenciesFromDatabase(pid);
 				
 				if(result != null) {					
 					response.status = 1;

@@ -14,6 +14,8 @@ import nomina.evermoreknights.SharedClass.CompletePlayerData;
 import nomina.evermoreknights.SharedClass.MongoDBManager;
 import nomina.evermoreknights.SharedClass.PlayerData;
 import nomina.evermoreknights.SharedClass.References;
+import nomina.evermoreknights.StaminaSystem.StaminaInfo;
+import nomina.evermoreknights.StaminaSystem.StaminaManager;
 
 @MultiHandler
 public class PlayerDataHandler extends BaseClientRequestHandler {
@@ -53,28 +55,30 @@ public class PlayerDataHandler extends BaseClientRequestHandler {
 	
 	private BasicSmartFoxResponse GetCompletePlayerData(String pid) {
 		BasicSmartFoxResponse response = new BasicSmartFoxResponse();
+				
+		PlayerData player = MongoDBManager.getInstance().GetPlayerDataByPID(pid);	
+		
+		if(player == null) {
+			response.status = 0;
+			response.message = "Player data could not be found.";
+			
+			return response;
+		}
+		
+		StaminaManager.Instance().CheckRegen(pid);
+		
+		List<CurrencyValue> currencies = CurrencyManager.Instance().GetUserCurrenciesFromDatabase(pid);
+		StaminaInfo staminaInfo = StaminaManager.Instance().GetUserStaminaFromDatabase(pid);
 		
 		CompletePlayerData completeData = new CompletePlayerData();
 		
-		PlayerData player = MongoDBManager.getInstance().GetPlayerDataByPID(pid);	
-		List<CurrencyValue> currencies = CurrencyManager.Instance().GetUserCurrenciesFromDatabase(pid);
-		
 		completeData.playerData = player;
-		completeData.currencies = currencies;
-				
-		if(player!=null) {	
-			
-			response.status = 1;
-			response.message = "Complete player data found.";
-			response.data = completeData;			
-			return response;	
-			
-		}else {			
-			// PLAYER NOT FOUND
-			response.status = 0;
-			response.message = "Player data could not be found.";
-		}
-				
+		completeData.currencies = currencies;		
+		completeData.staminaInfo = staminaInfo;		
+		
+		response.status = 1;
+		response.message = "Complete player data found.";
+		response.data = completeData;			
 		return response;
 	}
 

@@ -36,6 +36,8 @@ import nomina.evermoreknights.SharedClass.GeneralUtility;
 import nomina.evermoreknights.SharedClass.MongoDBManager;
 import nomina.evermoreknights.SharedClass.PlayerData;
 import nomina.evermoreknights.SharedClass.References;
+import nomina.evermoreknights.StaminaSystem.StaminaInfo;
+import nomina.evermoreknights.StaminaSystem.StaminaManager;
 
 public class LoginEventHandler extends BaseServerEventHandler {
 
@@ -73,13 +75,22 @@ public class LoginEventHandler extends BaseServerEventHandler {
 		
 		loginResponseOut.putSFSObject("OutData", response.ToSFSObject());
 		
+		InitialDataCheck(player.pid);		
+		
 		// PREPARING ON LOGIN DATA		
 		List<CurrencyValue> currencies = CurrencyManager.Instance().GetUserCurrenciesFromDatabase(player.pid);
-		
+		StaminaInfo staminaInfo = StaminaManager.Instance().GetUserStaminaFromDatabase(player.pid);
+				
 		// CONVERT TO SMARTFOX DATA
 		loginResponseOut.putSFSArray("currencies", GeneralUtility.ConvertListToSFSArray(currencies));		
+		loginResponseOut.putSFSObject("stamina", GeneralUtility.ConvertToSFSObject(staminaInfo));		
 	}
 
+	protected void InitialDataCheck(String pid) {
+		// INSERT INITIAL DATA TO EACH COLLECTION
+		CurrencyManager.Instance().InsertInitialCurrency(pid);
+		StaminaManager.Instance().InsertInitialStamina(pid);
+	}
 
 	private BasicSmartFoxResponse Login(ISession session, String username, String password) {
 		
@@ -113,6 +124,8 @@ public class LoginEventHandler extends BaseServerEventHandler {
 					response.status = 1;
 					response.message = "Login success.";
 					response.data = player;
+					
+					StaminaManager.Instance().CheckRegen(player.pid);
 					
 				}else {
 					// FAILED UPDATING TOKEN
@@ -196,17 +209,7 @@ public class LoginEventHandler extends BaseServerEventHandler {
 			MongoCollection<Document> playerCollection =  MongoDBManager.getInstance().getDBManager().getCollection(References.DatabaseCollection.Players);
 			playerCollection.insertOne(session, GeneralUtility.ConvertToDocument(player));
 			
-			// PREPARE AND INSERT TO CURRENCY COLLECTION
-			List<CurrencyValue> currValues = new ArrayList<CurrencyValue>();
-			currValues.add(new CurrencyValue(CurrencyType.Evergem.getValue(), 654321));
-			currValues.add(new CurrencyValue(CurrencyType.Zenny.getValue(), 123456));
-			
-			Document currencyDocument = new Document();
-			currencyDocument.put("pid", player.pid);
-			currencyDocument.put("currencies", GeneralUtility.ConvertToListDocument(currValues));
-						
-			MongoCollection<Document> currencyCollection =  MongoDBManager.getInstance().getDBManager().getCollection(References.DatabaseCollection.Currency);
-			currencyCollection.insertOne(currencyDocument);
+			InitialDataCheck(player.pid);
 			
 			// MAKE SURE WE DON'T SEND PASSWORD TO CLIENT
 			player.password = "";

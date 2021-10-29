@@ -47,6 +47,14 @@ public class GeneralUtility {
 		return elapsedTime;
 	}
 	
+	public static double GetElapsedMinutes(DateTime startTime) {
+		double elapsedTime = 0;		
+		DateTime now = GeneralUtility.GetCurrentTime();
+		Duration duration = new Duration(now, startTime);
+		elapsedTime = Math.abs(duration.getStandardMinutes());		
+		return elapsedTime;
+	}
+	
 //	public static String GetUTCNowString() {
 //		DateTimeZone date = DateTimeZone.UTC;
 //   		DateTime dt = new DateTime(date);
@@ -63,6 +71,10 @@ public class GeneralUtility {
 	public static DateTime GetCurrentTime() {   		
 		return DateTime.now(DateTimeZone.UTC).plusHours(7);
 	}	
+	
+	public static DateTime DateTimeFromString(String dateTimeString) {   		
+		return DateTime.parse(dateTimeString);
+	}
 	
 	public static BasicSmartFoxResponse APILogin(String username, String password) {
 		
