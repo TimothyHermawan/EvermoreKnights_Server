@@ -6,6 +6,8 @@ public class References {
 		public static String Authentication_Type = "Authentication_Type";	// Value: Login, Register
 		public static String Register_Email = "Email";	
 		public static String Register_Password = "Password";	
+		public static String Authentication_Provider = "Provider";	
+		public static String Authentication_Id = "Id";	
 	}
 	
 	public static class DatabaseSettings{

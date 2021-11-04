@@ -8,7 +8,9 @@ public enum CustomErrors implements IErrorCode
    EMAIL_TAKEN(1001),
    INVALID_CREDENTIAL(1002),
    TRANSACTION_FAILED(1003),
-   FAIL_UPDATE_TOKEN(1004);
+   FAIL_UPDATE_TOKEN(1004),
+   EMAIL_REQUIRED(1005),
+   PLAYER_NOT_FOUND(1006);
    
    private CustomErrors(int id)
    {

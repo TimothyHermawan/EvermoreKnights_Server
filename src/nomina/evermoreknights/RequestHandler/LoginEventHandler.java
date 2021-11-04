@@ -17,6 +17,7 @@ import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 import com.smartfoxserver.bitswarm.sessions.ISession;
 import com.smartfoxserver.v2.core.ISFSEvent;
+import com.smartfoxserver.v2.core.SFSConstants;
 import com.smartfoxserver.v2.core.SFSEventParam;
 import com.smartfoxserver.v2.entities.User;
 import com.smartfoxserver.v2.entities.data.ISFSObject;
@@ -29,6 +30,7 @@ import com.smartfoxserver.v2.extensions.BaseServerEventHandler;
 import nomina.evermoreknights.CurrencySystem.CurrencyManager;
 import nomina.evermoreknights.CurrencySystem.CurrencyType;
 import nomina.evermoreknights.CurrencySystem.CurrencyValue;
+import nomina.evermoreknights.SharedClass.AuthenticationPair;
 import nomina.evermoreknights.SharedClass.AuthenticationType;
 import nomina.evermoreknights.SharedClass.BasicSmartFoxResponse;
 import nomina.evermoreknights.SharedClass.CustomErrors;
@@ -59,7 +61,15 @@ public class LoginEventHandler extends BaseServerEventHandler {
 	    
 		AuthenticationType authenticationType = AuthenticationType.getEnum(parameters.getInt(References.CustomLoginData.Authentication_Type)); 
 		
-		if(authenticationType == AuthenticationType.Login) response = Login(session, username, password);			
+		// CHECK FOR EXTERNAL AUTHENTICATION
+		boolean useExternalAuthentication = false;
+		String provider = parameters.getUtfString(References.CustomLoginData.Authentication_Provider);
+		String id = parameters.getUtfString(References.CustomLoginData.Authentication_Id);
+		if(provider != null && !provider.isEmpty() && id != null && !id.isEmpty()) {
+			useExternalAuthentication = true;
+		}	
+		
+		if(authenticationType == AuthenticationType.Login) response = useExternalAuthentication? ExternalLogin(session, provider, id): Login(session, username, password, false);			
 		else response = Register(username, password, parameters);
 
 		if(response.status != 1) {		
@@ -79,11 +89,13 @@ public class LoginEventHandler extends BaseServerEventHandler {
 		
 		// PREPARING ON LOGIN DATA		
 		List<CurrencyValue> currencies = CurrencyManager.Instance().GetUserCurrenciesFromDatabase(player.pid);
-		StaminaInfo staminaInfo = StaminaManager.Instance().GetUserStaminaFromDatabase(player.pid);
-				
-		// CONVERT TO SMARTFOX DATA
+		StaminaInfo staminaInfo = StaminaManager.Instance().GetUserStaminaFromDatabase(player.pid);				
+		// AND CONVERT TO SMARTFOX DATA
 		loginResponseOut.putSFSArray("currencies", GeneralUtility.ConvertListToSFSArray(currencies));		
 		loginResponseOut.putSFSObject("stamina", GeneralUtility.ConvertToSFSObject(staminaInfo));		
+		
+		// CHANGING THE USERNAME OF THE CURRENT LOGIN SESSION
+		if(useExternalAuthentication) loginResponseOut.putUtfString(SFSConstants.NEW_LOGIN_NAME, player.username);
 	}
 
 	protected void InitialDataCheck(String pid) {
@@ -92,69 +104,100 @@ public class LoginEventHandler extends BaseServerEventHandler {
 		StaminaManager.Instance().InsertInitialStamina(pid);
 	}
 
-	private BasicSmartFoxResponse Login(ISession session, String username, String password) {
+	private BasicSmartFoxResponse Login(ISession session, String username, String password, boolean byPassSecurePassword) {
 		
 		BasicSmartFoxResponse response = new BasicSmartFoxResponse();
-		
+				
 		PlayerData player = MongoDBManager.getInstance().GetPlayerDataByUsername(username);		
 		
 		SFSObject errorData = new SFSObject();
 		
 		if(player!=null) {
 			
-			if(getApi().checkSecurePassword(session, player.password, password)) {
+			if(!byPassSecurePassword && !getApi().checkSecurePassword(session, player.password, password)) {
+				// WRONG PASSWORD
+				errorData.putShort("errorCode", CustomErrors.INVALID_CREDENTIAL.getId());
 				
-				// GENERATE NEW TOKEN, MOSTLY FOR WEB API, AND APLLY IT TO PLAYER IN RESPONSE
-				String newToken = new ObjectId().toHexString();
-				player.token = newToken;	
-				player.lastLogin = GeneralUtility.GetCurrentTime().toString();
-				
-				// UPDATE TOKEN IN THE DB
-				MongoCollection<Document> playerCollection =  MongoDBManager.getInstance().getDBManager().getCollection(References.DatabaseCollection.Players);
-				Bson filter_pid = Filters.eq("pid", player.pid);
-//				Bson update_token = Updates.set("token", newToken);
-				Bson update_lastLogin = Updates.set("lastLogin", player.lastLogin);
-				UpdateResult result = playerCollection.updateOne(filter_pid, update_lastLogin);		
-				
-				if(result.getModifiedCount() >= 1) {	
-					// MAKE SURE WE DON'T SEND PASSWORD TO CLIENT
-					player.password = "";
-					
-					// USERNAME AND PASSWORD MATCHED, TOKEN IS UPDATED.
-					response.status = 1;
-					response.message = "Login success.";
-					response.data = player;
-					
-					StaminaManager.Instance().CheckRegen(player.pid);
-					
-				}else {
-					// FAILED UPDATING TOKEN
-					errorData.putShort("errorCode", CustomErrors.FAIL_UPDATE_TOKEN.getId());
-					
-					response.status = 0;
-					response.message = "Failed updating data.";
-					response.data = errorData;
-				}				
+				response.status = 0;
+				response.message = "Invalid username or password.";
+				response.data = errorData;
 				
 				return response;
-				
-			}else {				
-				// WRONG PASSWORD				
 			}
+			
+			// GENERATE NEW TOKEN, MOSTLY FOR WEB API, AND APLLY IT TO PLAYER IN RESPONSE
+			String newToken = new ObjectId().toHexString();
+			player.token = newToken;	
+			player.lastLogin = GeneralUtility.GetCurrentTime().toString();
+			
+			// UPDATE TOKEN IN THE DB
+			MongoCollection<Document> playerCollection =  MongoDBManager.getInstance().getDBManager().getCollection(References.DatabaseCollection.Players);
+			Bson filter_pid = Filters.eq("pid", player.pid);
+//			Bson update_token = Updates.set("token", newToken);
+			Bson update_lastLogin = Updates.set("lastLogin", player.lastLogin);
+			UpdateResult result = playerCollection.updateOne(filter_pid, update_lastLogin);		
+			
+			if(result.getModifiedCount() >= 1) {	
+				// MAKE SURE WE DON'T SEND PASSWORD TO CLIENT
+				player.password = "";
+				
+				// USERNAME AND PASSWORD MATCHED, TOKEN IS UPDATED.
+				response.status = 1;
+				response.message = "Login success.";
+				response.data = player;
+				
+				StaminaManager.Instance().CheckRegen(player.pid);
+				
+			}else {
+				// FAILED UPDATING TOKEN
+				errorData.putShort("errorCode", CustomErrors.FAIL_UPDATE_TOKEN.getId());
+				
+				response.status = 0;
+				response.message = "Failed updating data.";
+				response.data = errorData;
+			}				
+			
+			return response;
+			
+		}else {			
+			// PLAYER NOT FOUND, BUT WE STILL INFORM THE USER AS INVALID CREDENTIAL
+			errorData.putShort("errorCode", CustomErrors.INVALID_CREDENTIAL.getId());
+			
+			response.status = 0;
+			response.message = "Invalid username or password.";
+			response.data = errorData;
+					
+			return response;
+		}
+		
+		
+	}
+	
+	private BasicSmartFoxResponse ExternalLogin(ISession session, String provider, String id) {
+		
+		BasicSmartFoxResponse response = new BasicSmartFoxResponse();
+				
+		PlayerData player = MongoDBManager.getInstance().GetPlayerDataByProvider(provider, id);		
+		
+		SFSObject errorData = new SFSObject();
+		
+		if(player!=null) {
+			
+			return Login(session, player.username, player.password, true);
 			
 		}else {			
 			// PLAYER NOT FOUND
+			errorData.putShort("errorCode", CustomErrors.PLAYER_NOT_FOUND.getId());
+			
+			response.status = 0;
+			response.message = "Player could not be found.";
+			response.data = errorData;
+					
+			return response;
 		}
-		
-		errorData.putShort("errorCode", CustomErrors.INVALID_CREDENTIAL.getId());
-		
-		response.status = 0;
-		response.message = "Invalid username or password.";
-		response.data = errorData;
-				
-		return response;
 	}
-
+	
+	
 	public BasicSmartFoxResponse Register(String username, String password, ISFSObject parameters){
 		BasicSmartFoxResponse response = new BasicSmartFoxResponse();
 		
@@ -162,22 +205,42 @@ public class LoginEventHandler extends BaseServerEventHandler {
 		
 		SFSObject errorData = new SFSObject();
 		
-		// CHECK FOR USERNAME AVAILABILITY
-		player = MongoDBManager.getInstance().GetPlayerDataByUsername(username);		
-		if(player != null) {
-			
-			errorData.putShort("errorCode", CustomErrors.USERNAME_TAKEN.getId());
+		boolean useExternalAuthentication = false;
+		
+		// FORCING THE EMPTY or NULL VALUE
+		if(username == null || username.isEmpty()) username = new ObjectId().toHexString();
+		String custom_password = parameters.getUtfString(References.CustomLoginData.Register_Password);
+		if(custom_password == null || custom_password.isEmpty()) custom_password = new ObjectId().toHexString();
+		
+		// CHECK FOR OTHER REQUIRED DATA
+		String email = parameters.getUtfString(References.CustomLoginData.Register_Email);
+		if(email == null || email.isEmpty()) {
+			errorData.putShort("errorCode", CustomErrors.EMAIL_REQUIRED.getId());
 			
 			response.status = 0;
-			response.message = "Username is already taken. Try another.";
+			response.message = "Email could not be empty.";
 			response.data = errorData;
-			
 			return response;
 		}
 		
-		// CHECK FOR EMAIL AVAILABILITY
-		String email = parameters.getUtfString(References.CustomLoginData.Register_Email);
-		String custom_password = parameters.getUtfString(References.CustomLoginData.Register_Password);
+		// CHECK FOR USERNAME AVAILABILITY IF USING INTERNAL AUTHENTICATION
+		if(!useExternalAuthentication) {
+			
+			player = MongoDBManager.getInstance().GetPlayerDataByUsername(username);			
+			
+			if(player!=null) {
+				
+				errorData.putShort("errorCode", CustomErrors.USERNAME_TAKEN.getId());
+				
+				response.status = 0;
+				response.message = "Username is already taken. Try another.";
+				response.data = errorData;
+				
+				return response;
+			}
+		}
+		
+		// CHECK FOR EMAIL AVAILABILITY		
 		player = MongoDBManager.getInstance().GetPlayerDataByEmail(email);
 		if(player != null) {
 			
@@ -187,13 +250,21 @@ public class LoginEventHandler extends BaseServerEventHandler {
 			response.message = "Email is already taken. Try another.";
 			response.data = errorData;
 			return response;
-		}
+		}		
+		
+		// CHECK FOR EXTERNAL AUTHENTICATION
+		String provider = parameters.getUtfString(References.CustomLoginData.Authentication_Provider);
+		String id = parameters.getUtfString(References.CustomLoginData.Authentication_Id);
+		if(provider != null && !provider.isEmpty() && id != null && !id.isEmpty()) {
+			useExternalAuthentication = true;
+		}		
 		
 		// PREPARING THE CLIENT SESSION
 		MongoClient client = MongoDBManager.getInstance().getClient();
 		ClientSession session = client.startSession();
 		
-		try {
+		try {			
+			
 			session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
 			
 			// PREPARE AND INSERT TO PLAYERS COLLECTION
@@ -204,7 +275,12 @@ public class LoginEventHandler extends BaseServerEventHandler {
 			player.pid = new ObjectId().toHexString();
 			player.created = GeneralUtility.GetCurrentTime().toString();
 			player.lastLogin = player.created;
-			player.token = new ObjectId().toHexString();		
+			player.token = new ObjectId().toHexString();	
+			
+			if(useExternalAuthentication) {				
+				player.externalProvider = provider;
+				player.externalId = id;
+			}
 			
 			MongoCollection<Document> playerCollection =  MongoDBManager.getInstance().getDBManager().getCollection(References.DatabaseCollection.Players);
 			playerCollection.insertOne(session, GeneralUtility.ConvertToDocument(player));
@@ -215,7 +291,7 @@ public class LoginEventHandler extends BaseServerEventHandler {
 			player.password = "";
 			
 			response.status = 1;
-			response.data = GeneralUtility.ConvertToSFSObject(player);
+			response.data = player;
 			
 			session.commitTransaction();
 			

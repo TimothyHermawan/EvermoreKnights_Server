@@ -7,13 +7,14 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-
+import com.mongodb.client.model.Filters;
 import com.smartfoxserver.v2.extensions.SFSExtension;
 
 import java.util.Arrays;
 import java.util.logging.Level;
 
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 
 
@@ -123,6 +124,28 @@ public class MongoDBManager {
     public PlayerData GetPlayerDataByUsername(String username) {
     	MongoCollection<Document> users = database.getCollection(References.DatabaseCollection.Players);
     	Document user = users.find(new Document("username", username)).limit(1).first();
+    	
+    	
+    	
+    	if(user!=null) {    		
+    		PlayerData player = GeneralUtility.ConvertFromDocument(user, PlayerData.class);
+//    		GeneralUtility.GetLog().log(Level.INFO, user.toJson());
+    		return player;  
+    	}
+    	else {
+//    		GeneralUtility.GetLog().log(Level.INFO, "Player not found.");
+    		return null;
+    	}
+    }
+    
+    public PlayerData GetPlayerDataByProvider(String provider, String id) {
+    	MongoCollection<Document> users = database.getCollection(References.DatabaseCollection.Players);
+    	
+    	Bson filter_provider = Filters.eq("externalProvider", provider);
+    	Bson filter_providerId = Filters.eq("externalProvider", provider);
+    	Bson filter_combined = Filters.and(filter_provider, filter_providerId);
+    	
+    	Document user = users.find(filter_combined).limit(1).first();
     	
     	
     	

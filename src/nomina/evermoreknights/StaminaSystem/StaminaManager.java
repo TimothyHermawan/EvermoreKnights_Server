@@ -76,6 +76,13 @@ public class StaminaManager {
 			return response;
 		}
 		
+		// Player StaminaInfo has reached maximum stamina point
+		if(info.stamina >= References.StaminaSettings.Max_Value) {
+			response.status = 0;
+			response.message = "Player stamina could not be regenerated because it has reached maximum points.";			
+			return response;
+		}
+		
 		DateTime lastRegen = DateTime.parse(info.lastRegenTime);
 		
 		double elapsedMinutes = GeneralUtility.GetElapsedMinutes(lastRegen);
@@ -90,8 +97,13 @@ public class StaminaManager {
 		
 		DateTime latestRegen = lastRegen.plusMinutes(References.StaminaSettings.RegenTimeInMinute * overlap); 
 		
+		int regeneratedStamina = References.StaminaSettings.RegenAmount * overlap;
+		int totalStamina = info.stamina + regeneratedStamina;
+		
+		totalStamina = Math.min(References.StaminaSettings.Max_Value, totalStamina);
+		
 		Bson filter_pid = Filters.eq("pid", pid);
-		Bson update_currency = Updates.inc("stamina",  References.StaminaSettings.RegenAmount * overlap); 
+		Bson update_currency = Updates.set("stamina",  totalStamina); 
 		Bson update_lastRegen= Updates.set("lastRegenTime", latestRegen.toString());
 		
 		MongoCollection<Document> staminaCollection =  MongoDBManager.getInstance().getDBManager().getCollection(References.DatabaseCollection.Stamina);
@@ -186,12 +198,20 @@ public class StaminaManager {
 		
 		BasicSmartFoxResponse response = new BasicSmartFoxResponse();
 		
-		PlayerData player = MongoDBManager.getInstance().GetPlayerDataByPID(pid);
+		StaminaInfo info = GetUserStaminaFromDatabase(pid);
 		
-		if(player == null) {
+		// Player StaminaInfo could not be found. Maybe the player is not registered properly?
+		if(info == null) {
 			response.status = 0;
-			response.message = "Player not found.";
-			
+			response.message = "Player Stamina could not be found. Maybe the player is not registered properly?";			
+			return response;
+		}
+		
+		int totalStamina = info.stamina + adjustment;
+		
+		if(totalStamina < 0) {
+			response.status = 0;
+			response.message = "Insufficient Stamina.";			
 			return response;
 		}
 		
