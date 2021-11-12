@@ -3,6 +3,7 @@ package nomina.evermoreknights.ZoneExtension;
 import com.smartfoxserver.v2.core.SFSEventType;
 import com.smartfoxserver.v2.extensions.SFSExtension;
 
+import nomina.evermoreknights.RequestHandler.CharacterHandler;
 import nomina.evermoreknights.RequestHandler.LoginEventHandler;
 import nomina.evermoreknights.RequestHandler.PingHandler;
 import nomina.evermoreknights.RequestHandler.PlayerDataHandler;
@@ -10,6 +11,7 @@ import nomina.evermoreknights.RequestHandler.StaminaHandler;
 import nomina.evermoreknights.RequestHandler.TransactionAndInvoiceHandler;
 import nomina.evermoreknights.SharedClass.MongoDBManager;
 import nomina.evermoreknights.SharedClass.References;
+import nomina.slimehaven.CharacterSystem.CharacterManager;
 
 
 public class EvermoreKnightsZoneExtension extends SFSExtension {
@@ -28,11 +30,14 @@ public class EvermoreKnightsZoneExtension extends SFSExtension {
 		addRequestHandler(References.SmartfoxCMD.Prefix_Transaction, TransactionAndInvoiceHandler.class);
 		addRequestHandler(References.SmartfoxCMD.Prefix_PlayerData, PlayerDataHandler.class);
 		addRequestHandler(References.SmartfoxCMD.Prefix_Stamina, StaminaHandler.class);
+		addRequestHandler(References.SmartfoxCMD.Prefix_Character, CharacterHandler.class);
 		
 		// Single Handler(s)
 		addRequestHandler(References.SmartfoxCMD.Ping, PingHandler.class);
 		
 		trace("===== EvermoreKnights ZoneExtension is Initialized =====");
+		
+		CharacterManager.Instance().Initialize();
 	}
 	
 //	@Override

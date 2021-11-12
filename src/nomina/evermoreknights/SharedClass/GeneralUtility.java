@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
-
+import java.util.stream.Collectors;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -161,21 +163,32 @@ public class GeneralUtility {
 //	   }
 //	 }
 	
-//	public static Object DeepCopyJSON(Object object) {
-//	   try {
-//	    String json = gson.toJson(object);
-//	    
-//	    Object data = new Object();
-//	    data = gson.fromJson(json, Object.class);
-//	    
-//	    return data;
-//	    
-//	   }
-//	   catch (Exception e) {
-//	     e.printStackTrace();
-//	     return null;
-//	   }
-//	 }
+	public static <T> T DeepCopyJSON(Object object, Class<T> clazz) {
+		String json = gson.toJson(object);
+	    
+	    return gson.fromJson(json, clazz);
+	 }
+	
+	public static float RandomFloat(float min, float max) {
+//		System.out.println(String.format("Min: %d, Max: %d", min, max));
+		
+		if(min == max) return min;
+		if(min>max) return min;
+		else {
+			return (float)ThreadLocalRandom.current().nextDouble(min, max);
+		}
+	}
+	
+	public static int RandomInt(int min, int max) {
+//		System.out.println(String.format("Min: %d, Max: %d", min, max));
+		
+		if(min == max) return min;
+		if(min>max) return min;
+		else {
+			return ThreadLocalRandom.current().nextInt(min, max);
+		}
+	}
+	
 	
 //	public static boolean IsVowel(String word) {		
 //		word = word.toLowerCase();
@@ -218,14 +231,14 @@ public class GeneralUtility {
 //		return name;
 //	}
 	
-//	public static <T> List<T> FilterWithPredicate(List<T> l, Predicate<T> p) 
-//    { 
-//        // using Predicate condition in lambda expression 
-//        l = l.stream().filter(p).collect(Collectors.toList()); 
-//  
-//        // Return the list  
-//        return l; 
-//    } 
+	public static <T> List<T> FilterWithPredicate(List<T> l, Predicate<T> p) 
+    { 
+        // using Predicate condition in lambda expression 
+        l = l.stream().filter(p).collect(Collectors.toList()); 
+  
+        // Return the list  
+        return l; 
+    } 
 //	
 //	public static Gson GetGson() {
 //		return gson;
@@ -258,6 +271,11 @@ public class GeneralUtility {
 //		return result;		
 //	}
 
+    public static <T> T RandomElement(List<T> items)
+    {
+        // Return a random item.
+        return items.get(RandomInt(0, items.size()));
+    }
 	
 	public static <T> List<T> ConvertObjectToList(String s, Class<T[]> clazz) {
 	    T[] arr = new Gson().fromJson(s, clazz);
@@ -329,7 +347,7 @@ public class GeneralUtility {
 	}
 	
 	public static <T> T ConvertFromDocument(Document doc, Class<T> clazz) {
-	    String json = doc.toJson();
+	    String json = doc.toJson();	    
 	    return gson.fromJson(json, clazz);
 	}
 	
